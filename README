@@ -1,0 +1,3 @@
+BLD-MAXIMA calls Maxima to evaluate Maxima or Maxima lisp-level expressions.
+It includes translation of Lisp math expressions to Maxima for algebraic simplification.
+Lisp forms that aren't in the translation table are identified and treated as symbols in Maxima.
