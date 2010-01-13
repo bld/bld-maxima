@@ -1,12 +1,12 @@
-(defpackage :bld.maxima
+(defpackage :bld.maxima.system
   (:use :asdf :cl))
-(in-package :bld.maxima)
+(in-package :bld.maxima.system)
 (defsystem :bld-maxima
     :name "bld-maxima"
     :author "Benjamin L. Diedrich <ben@solarsails.info>"
     :version "0.0.1"
     :maintainer "Benjamin L. Diedrich <ben@solarsails.info>"
-    :license ""
+    :license "BSD"
     :description "Send commands to Maxima program. Includes Lisp math code simplification."
     :components 
     ((:file "maxima"))
