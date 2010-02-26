@@ -1,3 +1,13 @@
 BLD-MAXIMA calls Maxima to evaluate Maxima or Maxima lisp-level expressions.
 It includes translation of Lisp math expressions to Maxima for algebraic simplification.
 Lisp forms that aren't in the translation table are identified and treated as symbols in Maxima.
+Depends on KMRCL for COMMAND-OUTPUT to run Maxima & get output.
+Depends on CL-PPCRE for translating Lisp -> Maxima -> Lisp.
+Depends on SPLIT-SEQUENCE to process Maxima output.
+Exports *maxima-binary*, *maxima-batch-options*, and SIMPLIFY-LISP-EXPR.
+
+Usage:
+CL-USER> (asdf:oos 'asdf:load-op 'bld-maxima)
+CL-USER> (bld-maxima:simplify-lisp-expr '(+ (aref a 2) (aref a 2)))
+(* 2 (AREF A 2))
+
