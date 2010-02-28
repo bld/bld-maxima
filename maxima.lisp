@@ -7,7 +7,13 @@
   (:import-from :kmrcl :command-output)
   (:export :*maxima-binary*
 	   :*maxima-batch-options*
-	   :simplify-lisp-expr))
+	   :*maxima-init-expressions*
+	   :*maxima-lisp-table*
+	   :simplify-lisp-expr
+	   :run-maxima-lisp
+	   :jacobi
+	   :run-maxima-command
+	   :run-maxima-lisp))
 
 (in-package :bld-maxima)
 
