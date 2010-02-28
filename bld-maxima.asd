@@ -6,8 +6,8 @@
     :author "Benjamin L. Diedrich <ben@solarsails.info>"
     :version "0.0.1"
     :maintainer "Benjamin L. Diedrich <ben@solarsails.info>"
-    :license "LLGPL"
+    :license "BSD"
     :description "Send commands to Maxima program, including simplification of Lisp math expressions."
     :components 
     ((:file "maxima"))
-    :depends-on ("kmrcl" "split-sequence" "cl-ppcre"))
+    :depends-on ("kmrcl" "cl-ppcre"))

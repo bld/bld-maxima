@@ -3,7 +3,6 @@ It includes translation of Lisp math expressions to Maxima for algebraic simplif
 Lisp forms that aren't in the translation table are identified and treated as symbols in Maxima.
 Depends on KMRCL for COMMAND-OUTPUT to run Maxima & get output.
 Depends on CL-PPCRE for translating Lisp -> Maxima -> Lisp.
-Depends on SPLIT-SEQUENCE to process Maxima output.
 Exports *maxima-binary*, *maxima-batch-options*, and SIMPLIFY-LISP-EXPR.
 
 Usage:

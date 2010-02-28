@@ -5,7 +5,6 @@
 (defpackage :bld-maxima
   (:use :common-lisp :cl-ppcre)
   (:import-from :kmrcl :command-output)
-  (:import-from :split-sequence :split-sequence)
   (:export :*maxima-binary*
 	   :*maxima-batch-options*
 	   :simplify-lisp-expr))
