@@ -114,13 +114,14 @@
 
 (defun jacobi (a)
   "Find eigenvalues of an array using Maxima's eigens_by_jacobi function"
-  (let* ((*maxima-init-expressions* (list "load(\"linearalgebra\")$"))
-	 (result
-	  (read-from-string
-	   (run-maxima-lisp (format nil "(mfuncall '\\$eigens_by_jacobi ~a)" (array-to-matrix a))))))
-    (values
-     (mlist-to-array (second result)) ; eigenvalues
-     (matrix-to-array (third result))))) ; eigenvectors
+  (let ((*maxima-init-expressions* (list "load(\"linearalgebra\")$"))
+	(*read-default-float-format* 'double-float))
+    (let ((result
+	   (read-from-string
+	    (run-maxima-lisp (format nil "(mfuncall '\\$eigens_by_jacobi ~a)" (array-to-matrix a))))))
+      (values
+       (mlist-to-array (second result)) ; eigenvalues
+       (matrix-to-array (third result)))))) ; eigenvectors
 
 (defun match-lisp-funs (string)
   "Regular expression match of (function args). Doesn't match ((maximafun) args). Returns list of matches."
@@ -171,7 +172,8 @@
 
 (defun maxima-to-lisp-string (maxima-string)
   "convert simplified maxima output string to lisp string"
-  (let ((lisp-string maxima-string))
+  (let* ((*read-default-float-format* 'double-float)
+	 (lisp-string (format nil "~a" (read-from-string maxima-string)))) ; fix Maxima output
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq lisp-string
 		(regex-replace-all (format nil "\\(~a SIMP\\)" maxima) lisp-string lisp)))
@@ -192,6 +194,7 @@
 
 (defun simplify-lisp-expr (lisp-expr)
   "Simplify a mathematical lisp expression"
-  (read
-   (make-string-input-stream
-    (simplify-lisp-string (format nil "~a" lisp-expr)))))
+  (let ((*read-default-float-format* 'double-float))
+    (read
+     (make-string-input-stream
+      (simplify-lisp-string (format nil "~a" lisp-expr))))))
