@@ -9,7 +9,7 @@
 	   :*maxima-batch-options*
 	   :*maxima-init-expressions*
 	   :*maxima-lisp-table*
-	   :simplify-lisp-expr
+	   :simp
 	   :run-maxima-lisp
 	   :jacobi
 	   :run-maxima-command
@@ -59,19 +59,6 @@
 	"*"
 	"+")
   "regular expression special characters")
-#|
-(defun array-to-matrix (a)
-  "Convert a lisp 2D array to Maxima matrix form"
-  (regexify-special
-   (format nil "~a"
-	   `(mfuncall '$matrix
-		      ,@(loop with (n m) = (array-dimensions a)
-			   for i below n
-			   collect `'((mlist)
-				      ,@(loop for j below m
-					   collect (aref a i j))))))
-   "$"))
-|#
 
 (defun array-to-matrix (a)
   "Convert a lisp 2D array to Maxima matrix form"
@@ -167,7 +154,10 @@
   (let ((maxima-string lisp-string))
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq maxima-string
-		(regex-replace-all (regexify-specials lisp) maxima-string (format nil "(~a)" maxima))))
+		(regex-replace-all ; only replace with ( prefix & space suffix
+		 (regexify-specials (concatenate 'string "(" lisp " "))
+		 maxima-string 
+		 (concatenate 'string "((" maxima ") "))))
     maxima-string))
 
 (defun maxima-to-lisp-string (maxima-string)
@@ -192,7 +182,7 @@
       lisp-funs
       ren-funs))))
 
-(defun simplify-lisp-expr (lisp-expr)
+(defun simp (lisp-expr)
   "Simplify a mathematical lisp expression"
   (let ((*read-default-float-format* 'double-float))
     (read
