@@ -7,6 +7,6 @@ Exports *maxima-binary*, *maxima-batch-options*, and SIMPLIFY-LISP-EXPR.
 
 Usage:
 CL-USER> (asdf:oos 'asdf:load-op 'bld-maxima)
-CL-USER> (bld-maxima:simplify-lisp-expr '(+ (aref a 2) (aref a 2)))
+CL-USER> (bld-maxima:simp '(+ (aref a 2) (aref a 2)))
 (* 2 (AREF A 2))
 
