@@ -3,8 +3,8 @@
 ;; Results are returned and extracted from the Maxima output
 
 (defpackage :bld-maxima
-  (:use :common-lisp :cl-ppcre)
-  (:import-from :kmrcl :command-output)
+  (:use :common-lisp :cl-ppcre :usocket)
+  (:import-from :kmrcl :command-output :run-shell-command)
   (:export :*maxima-binary*
 	   :*maxima-batch-options*
 	   :*maxima-init-expressions*
@@ -185,6 +185,4 @@
 (defun simp (lisp-expr)
   "Simplify a mathematical lisp expression"
   (let ((*read-default-float-format* 'double-float))
-    (read
-     (make-string-input-stream
-      (simplify-lisp-string (format nil "~a" lisp-expr))))))
+    (read-from-string (simplify-lisp-string (format nil "~a" lisp-expr)))))

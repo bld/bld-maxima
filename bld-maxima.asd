@@ -9,5 +9,6 @@
     :license "MIT"
     :description "Send commands to Maxima program, including simplification of Lisp math expressions."
     :components 
-    ((:file "maxima"))
-    :depends-on ("kmrcl" "cl-ppcre"))
+    ((:file "maxima")
+     (:file "maxima-socket" :depends-on ("maxima")))
+    :depends-on ("kmrcl" "cl-ppcre" "usocket"))
