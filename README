@@ -3,10 +3,24 @@ It includes translation of Lisp math expressions to Maxima for algebraic simplif
 Lisp forms that aren't in the translation table are identified and treated as symbols in Maxima.
 Depends on KMRCL for COMMAND-OUTPUT to run Maxima & get output.
 Depends on CL-PPCRE for translating Lisp -> Maxima -> Lisp.
-Exports *maxima-binary*, *maxima-batch-options*, and SIMPLIFY-LISP-EXPR.
 
 Usage:
 CL-USER> (asdf:oos 'asdf:load-op 'bld-maxima)
 CL-USER> (bld-maxima:simp '(+ (aref a 2) (aref a 2)))
 (* 2 (AREF A 2))
 
+Socket routines
+===============
+Allow running a single Maxima process and sending it commands or lisp math code to simplify over a network socket.
+Depends on USOCKET.
+Should run faster than non-socket version.
+
+
+Usage:
+CL-USER> (bld-maxima:maxima-start)
+CL-USER> (bld-maxima:simp-socket '(+ (aref a 2) (aref a 2)))
+(* 2 (AREF A 2))
+CL-USER> (bld-maxima:jacobi-socket #2a((1 2)(2 1)))
+#(-1.0d0 3.0d0)
+#2A((0.7071067811865476d0 0.7071067811865475d0)
+    (-0.7071067811865475d0 0.7071067811865476d0))
