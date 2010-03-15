@@ -14,13 +14,18 @@ Socket routines
 Allow running a single Maxima process and sending it commands or lisp math code to simplify over a network socket.
 Depends on USOCKET.
 Should run faster than non-socket version.
-
+Requires MAXIMA-START to run a socket connected Maxima session, and MAXIMA-SHUTDOWN once finished sending computations.
 
 Usage:
 CL-USER> (bld-maxima:maxima-start)
+(((%I1) (%O1) FALSE)
+ ((%I2) (%O2) "/usr/share/maxima/5.20.1/share/linearalgebra/linearalgebra.mac"))
 CL-USER> (bld-maxima:simp-socket '(+ (aref a 2) (aref a 2)))
 (* 2 (AREF A 2))
+16
 CL-USER> (bld-maxima:jacobi-socket #2a((1 2)(2 1)))
 #(-1.0d0 3.0d0)
 #2A((0.7071067811865476d0 0.7071067811865475d0)
     (-0.7071067811865475d0 0.7071067811865476d0))
+CL-USER> (bld-maxima:maxima-shutdown)
+T
