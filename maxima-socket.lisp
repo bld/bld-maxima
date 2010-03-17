@@ -4,21 +4,6 @@
 
 (in-package :bld-maxima)
 
-(export '(*maxima-port*
-	  *maxima-socket-options*
-	  *maxima-socket-init-forms*
-	  *maxima-host*
-	  *maxima-socket-passive*
-	  *maxima-socket*
-	  *maxima-pid*
-	  maxima-start
-	  maxima-shutdown
-	  maxima-read
-	  maxima-send
-	  maxima-send-lisp
-	  simp-socket
-	  jacobi-socket))
-
 (defvar *maxima-port* 4011)
 (defvar *maxima-socket-options* "-q")
 (defvar *maxima-socket-init-forms* ; list of initial Maxima forms to execute on start

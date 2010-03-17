@@ -13,7 +13,23 @@
 	   :run-maxima-lisp
 	   :jacobi
 	   :run-maxima-command
-	   :run-maxima-lisp))
+	   :run-maxima-lisp
+	   :*maxima-port*
+	   :*maxima-socket-options*
+	   :*maxima-socket-init-forms*
+	   :*maxima-host*
+	   :*maxima-socket-passive*
+	   :*maxima-socket*
+	   :*maxima-pid*
+	   :maxima-start
+	   :maxima-shutdown
+	   :maxima-read
+	   :maxima-send
+	   :maxima-send-lisp
+	   :simp-socket
+	   :jacobi-socket))
+
+
 
 (in-package :bld-maxima)
 
@@ -151,7 +167,7 @@
 
 (defun lisp-to-maxima-string (lisp-string)
   "convert lisp string to maxima string"
-  (let ((maxima-string lisp-string))
+  (let ((maxima-string (remove #\Newline lisp-string)))
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq maxima-string
 		(regex-replace-all ; only replace with ( prefix & space suffix
