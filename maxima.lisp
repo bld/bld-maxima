@@ -151,7 +151,7 @@
 
 (defun lisp-to-maxima-string (lisp-string)
   "convert lisp string to maxima string"
-  (let ((maxima-string lisp-string))
+  (let ((maxima-string (remove #\Newline lisp-string)))
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq maxima-string
 		(regex-replace-all ; only replace with ( prefix & space suffix
