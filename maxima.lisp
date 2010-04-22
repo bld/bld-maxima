@@ -27,9 +27,8 @@
 	   :maxima-send
 	   :maxima-send-lisp
 	   :simp-socket
-	   :jacobi-socket))
-
-
+	   :jacobi-socket
+	   :atan2))
 
 (in-package :bld-maxima)
 
@@ -40,12 +39,12 @@
   '((mplus +)
     (mminus -)
     (mtimes *)
-    (rat /)
     (mexpt expt)
     (mlist list)
     (mequal =)
     (mgreaterp >)
     (mabs abs)
+    (rat /)
     (%sin sin)
     (%cos cos)
     (%tan tan)
@@ -55,9 +54,13 @@
     (%sinh sinh)
     (%cosh cosh)
     (%atan atan)
+    (%atan2 atan2)
     (%signum signum)
     (%max max))
   "lookup table of maxima > lisp expressions")
+
+(defmethod atan2 ((n1 number)(n2 number))
+  (atan n1 n2))
 
 (defparameter *maxima-lisp-table-string*
   (loop for (m l) in *maxima-lisp-table*
