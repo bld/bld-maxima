@@ -5,11 +5,13 @@
 (defpackage :bld-maxima
   (:use :common-lisp :cl-ppcre :usocket)
   (:import-from :kmrcl :command-output :run-shell-command)
-  (:export :*maxima-binary*
+  (:export :*delay*
+	   :*maxima-binary*
 	   :*maxima-batch-options*
 	   :*maxima-init-expressions*
 	   :*maxima-lisp-table*
 	   :simp
+	   :simp-exprs
 	   :run-maxima-lisp
 	   :jacobi
 	   :run-maxima-command
@@ -28,10 +30,12 @@
 	   :maxima-send-lisp
 	   :simp-socket
 	   :jacobi-socket
-	   :atan2))
+	   :atan2
+	   :delay))
 
 (in-package :bld-maxima)
 
+(defvar *delay* nil "Check whether to defer evaluation")
 (defparameter *maxima-binary* "/usr/bin/maxima")
 (defparameter *maxima-batch-options* "-q --batch-string \"display2d : false$ ")
 (defvar *maxima-init-expressions* nil)
@@ -201,7 +205,40 @@
       lisp-funs
       ren-funs))))
 
+(defun simplify-lisp-strings (&rest lisp-strings)
+  (let* ((maxima-string-list (mapcar #'lisp-to-maxima-string lisp-strings))
+	 (lisp-funs-list (mapcar #'match-lisp-funs maxima-string-list))
+	 (ren-funs-list (loop for lisp-funs in lisp-funs-list
+			   collect (loop for lisp-fun in lisp-funs
+				      collect (format nil "~a" (gensym)))))
+	 (renamed-funs-strings (mapcar #'rename-lisp-funs maxima-string-list lisp-funs-list ren-funs-list))
+	 (maxima-output (run-maxima-lisp (format nil "(mapcar #'simplify '(~{~a ~}))" renamed-funs-strings)))
+	 (maxima-output-list (mapcar #'(lambda (l) (format nil "~a" l)) (read-from-string maxima-output))))
+    (mapcar #'(lambda (output lisp-funs ren-funs)
+		(maxima-to-lisp-string
+		 (re-rename-lisp-funs output lisp-funs ren-funs)))
+	    maxima-output-list
+	    lisp-funs-list
+	    ren-funs-list)))
+
 (defun simp (lisp-expr)
   "Simplify a mathematical lisp expression"
-  (let ((*read-default-float-format* 'double-float))
-    (read-from-string (simplify-lisp-string (format nil "~a" lisp-expr)))))
+    (if *delay* 
+	lisp-expr
+	(let ((*read-default-float-format* 'double-float))
+	  (read-from-string (simplify-lisp-string (format nil "~a" lisp-expr))))))
+
+(defun simp-exprs (&rest exprs)
+  "Simplify a list of mathematical Lisp expressions"
+  (if *delay*
+      exprs
+      (let ((*read-default-float-format* 'double-float))
+	(mapcar #'read-from-string 
+		(apply #'simplify-lisp-strings 
+		       (mapcar #'(lambda (expr) (format nil "~a" expr)) 
+			       exprs))))))
+
+(defmacro delay (&body body)
+  "Delay simplification of a block of code"
+  `(let ((bld-maxima::*delay* t))
+     ,@body))

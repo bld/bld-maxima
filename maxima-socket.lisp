@@ -62,23 +62,25 @@
 
 (defun simp-socket (lisp-expr)
   "Simplify a lisp math expression using a Maxima socket connection"
-  (let* ((maxima-string (lisp-to-maxima-string (format nil "~a" lisp-expr)))
-	 (lisp-funs (match-lisp-funs maxima-string))
-	 (ren-funs (loop repeat (length lisp-funs) 
-		      collect (format nil "~a" (gensym))))
-	 (*read-default-float-format* 'double-float))
-    (read-from-string
-     (maxima-to-lisp-string
-      (re-rename-lisp-funs
-       (format
-	nil "~a"
-	(second
-	 (maxima-send-lisp
-	  (format
-	   nil "(simplify '~a)"
-	   (rename-lisp-funs maxima-string lisp-funs ren-funs)))))
-       lisp-funs
-       ren-funs)))))
+  (if 
+   *delay* lisp-expr
+   (let* ((maxima-string (lisp-to-maxima-string (format nil "~a" lisp-expr)))
+	  (lisp-funs (match-lisp-funs maxima-string))
+	  (ren-funs (loop repeat (length lisp-funs) 
+		       collect (format nil "~a" (gensym))))
+	  (*read-default-float-format* 'double-float))
+     (read-from-string
+      (maxima-to-lisp-string
+       (re-rename-lisp-funs
+	(format
+	 nil "~a"
+	 (second
+	  (maxima-send-lisp
+	   (format
+	    nil "(simplify '~a)"
+	    (rename-lisp-funs maxima-string lisp-funs ren-funs)))))
+	lisp-funs
+	ren-funs))))))
 
 (defun jacobi-socket (a)
   "Calculate eigenvalues & eigenvectors of a 2D real symmetric array using Maxima's EIGENS_BY_JACOBI"
