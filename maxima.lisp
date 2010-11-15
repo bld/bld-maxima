@@ -45,8 +45,8 @@
     (mtimes *)
     (mexpt expt)
     (mlist list)
-    (mequal =)
-    (mgreaterp >)
+;;    (mequal =) ; comparison operators not really useful with Maxima
+;;    (mgreaterp >)
     (mabs abs)
     (rat /)
     (%sin sin)
