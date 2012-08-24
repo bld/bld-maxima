@@ -12,7 +12,6 @@
 	   :*maxima-lisp-table*
 	   :simp
 	   :simp-exprs
-	   :run-maxima-lisp
 	   :jacobi
 	   :run-maxima-command
 	   :run-maxima-lisp
@@ -206,6 +205,7 @@
       ren-funs))))
 
 (defun simplify-lisp-strings (&rest lisp-strings)
+  "Simplify multiple lisp string expressions"
   (let* ((maxima-string-list (mapcar #'lisp-to-maxima-string lisp-strings))
 	 (lisp-funs-list (mapcar #'match-lisp-funs maxima-string-list))
 	 (ren-funs-list (loop for lisp-funs in lisp-funs-list

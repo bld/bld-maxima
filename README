@@ -5,7 +5,7 @@ Depends on KMRCL for COMMAND-OUTPUT to run Maxima & get output.
 Depends on CL-PPCRE for translating Lisp -> Maxima -> Lisp.
 
 Usage:
-CL-USER> (asdf:oos 'asdf:load-op 'bld-maxima)
+CL-USER> (asdf:load-system 'bld-maxima)
 CL-USER> (bld-maxima:simp '(+ (aref a 2) (aref a 2)))
 (* 2 (AREF A 2))
 
@@ -29,3 +29,18 @@ CL-USER> (bld-maxima:jacobi-socket #2a((1 2)(2 1)))
     (-0.7071067811865475d0 0.7071067811865476d0))
 CL-USER> (bld-maxima:maxima-shutdown)
 T
+
+simp-exprs
+==========
+
+The 'simp-exprs function takes a series of math expressions as
+arguments and simplifies all of them with one call to Maxima instead
+of several.
+
+Delay
+=====
+
+Wrapping the 'delay' macro around a 'simp or 'simp-socket expression
+prevents evaluation so it can be deferred until later, which can speed
+computations in certain circumstances because of the overhead incurred
+by 'simp and 'simp-socket.
