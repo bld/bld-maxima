@@ -3,8 +3,7 @@
 ;; Results are returned and extracted from the Maxima output
 
 (defpackage :bld-maxima
-  (:use :common-lisp :cl-ppcre :usocket)
-  (:import-from :kmrcl :command-output :run-shell-command)
+  (:use :common-lisp :cl-ppcre)
   (:export :*delay*
 	   :*maxima-binary*
 	   :*maxima-batch-options*
@@ -170,6 +169,10 @@
      for lisp-fun in lisp-funs
      do (setq out-string (regex-replace-all ren-fun out-string lisp-fun))
      finally (return out-string)))
+
+(defun lisp-to-maxima (lexpr)
+  "Convert Lisp to Maxima expression"
+  )
 
 (defun lisp-to-maxima-string (lisp-string)
   "convert lisp string to maxima string"
