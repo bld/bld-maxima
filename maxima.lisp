@@ -342,3 +342,8 @@
   (if *delay*
       lexpr
       (simplify-lisp-expr lexpr)))
+
+(defun simp-exprs (&rest exprs)
+  (if *delay*
+      exprs
+      (mapcar #'simplify-lisp-expr exprs)))
