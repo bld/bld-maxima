@@ -49,7 +49,7 @@
 ;;    (mequal =) ; comparison operators not really useful with Maxima
 ;;    (mgreaterp >)
     (mabs abs)
-    (rat /)
+    (mquotient /)
     (%sin sin)
     (%cos cos)
     (%tan tan)
@@ -60,6 +60,8 @@
     (%cosh cosh)
     (%atan atan)
     (%atan2 atan2)
+    (%asin asin)
+    (%acos acos)
     (%signum signum)
     (%max max))
   "lookup table of maxima > lisp expressions")
