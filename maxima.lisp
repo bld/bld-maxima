@@ -47,7 +47,8 @@
     (%asin asin)
     (%acos acos)
     (%signum signum)
-    (%max max)
+    ($max max)
+    ($min min)
     (rat /))
   "lookup table of maxima > lisp expressions")
 
