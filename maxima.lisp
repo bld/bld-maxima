@@ -15,7 +15,8 @@
 	   :jacobi
 	   :atan2
 	   :delay
-	   :%pi))
+	   :%pi
+	   :%e))
 
 ;; Reset from change made by EMBEDDABLE-MAXIMA
 (setq cl:*read-default-float-format* 'single-float)
@@ -24,6 +25,8 @@
 
 ;; Define %PI variable to be Maxima %PI for simplifying trig relationships
 (defparameter %pi 'maxima::$%pi)
+
+(defparameter %e 'maxima::$%e)
 
 (defvar *delay* nil "Check whether to defer evaluation")
 (defparameter *maxima-lisp-table*
@@ -42,8 +45,9 @@
     (%sqrt sqrt)
     (%sinh sinh)
     (%cosh cosh)
+    (%tanh tanh)
     (%atan atan)
-    (%atan2 atan2)
+    ($atan2 atan2)
     (%asin asin)
     (%acos acos)
     (%signum signum)
@@ -53,6 +57,7 @@
   "lookup table of maxima > lisp expressions")
 
 (defmethod atan2 ((n1 number)(n2 number))
+  "Tangent of 2 args given rise & run. Used for conversion between maxima & lisp."
   (atan n1 n2))
 
 (defparameter *maxima-lisp-table-intern*
