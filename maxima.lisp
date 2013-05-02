@@ -12,6 +12,10 @@
   (:export :*delay*
 	   :simp
 	   :simp-exprs
+	   :trigreduce
+	   :trigexpand
+	   :trigsimp
+	   :trigrat
 	   :jacobi
 	   :atan2
 	   :delay
@@ -127,10 +131,12 @@
 (defun maxima-to-lisp (mexpr)
   (let ((lexpr (copy-tree mexpr)))
     (loop for (maxima lisp) in *maxima-lisp-table-intern*
-       do (setq lexpr (nsubst lisp (list maxima 'maxima::simp) lexpr :test #'equal)))
+       do (setq lexpr (nsubst lisp (list maxima 'maxima::simp) lexpr :test #'equal))
+       do (setq lexpr (nsubst lisp (list maxima 'maxima::simp 'maxima::ratsimp) lexpr :test #'equal))
+       do (setq lexpr (nsubst lisp (list maxima) lexpr :test #'equal)))
     lexpr))
 
-(defun simplify-lisp-expr (lexpr)
+(defun simplify-lisp-expr (lexpr &optional (simpfun 'maxima::$ev))
   "Simplify an algebraic lisp expression"
   (let* ((mexpr (lisp-to-maxima lexpr))
 	 (mstring (format nil "~a" mexpr))
@@ -138,7 +144,7 @@
 	 (rfuns (loop for lfun in lfuns collect (format nil "~a" (gensym)))))
     (maxima-to-lisp
      (re-rename-lisp-funs-embedded
-      (maxima::simplify
+      (maxima::mfuncall simpfun
        (rename-lisp-funs-embedded mexpr lfuns rfuns))
       lfuns
       rfuns))))
@@ -148,12 +154,24 @@
   `(let ((bld-maxima::*delay* t))
      ,@body))
 
-(defun simp (lexpr)
+(defun simp (lexpr &optional (simpfun 'maxima::$ev))
   (if *delay*
       lexpr
-      (simplify-lisp-expr lexpr)))
+      (simplify-lisp-expr lexpr simpfun)))
 
 (defun simp-exprs (&rest exprs)
   (if *delay*
       exprs
       (mapcar #'simplify-lisp-expr exprs)))
+
+(defun trigreduce (lexpr)
+  (simp lexpr 'maxima::$trigreduce))
+
+(defun trigexpand (lexpr)
+  (simp lexpr 'maxima::$trigexpand))
+
+(defun trigsimp (lexpr)
+  (simp lexpr 'maxima::$trigsimp))
+
+(defun trigrat (lexpr)
+  (simp lexpr 'maxima::$trigrat))
