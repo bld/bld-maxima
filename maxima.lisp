@@ -9,6 +9,7 @@
 
 (defpackage :bld-maxima
   (:use :common-lisp :cl-ppcre)
+  (:import-from :bld-utils :maptree)
   (:export :*delay*
 	   :simp
 	   :simp-exprs
@@ -121,6 +122,14 @@
      do (setq outexpr (nsubst (read-from-string lfun) (read-from-string rfun) outexpr))
      finally (return outexpr)))
 
+(defun keywords-to-strings (lexpr)
+  "Turn keywords into strings"
+  (maptree #'(lambda (lf)
+	       (if (keywordp lf)
+		   (format nil ":~a" lf)
+		   lf))
+	   lexpr))
+
 (defun lisp-to-maxima (lexpr)
   "Convert Lisp to Maxima expression"
   (loop for (m l) in *maxima-lisp-table-intern*
@@ -139,7 +148,7 @@
 (defun simplify-lisp-expr (lexpr &optional (simpfun 'maxima::$ev))
   "Simplify an algebraic lisp expression"
   (let* ((mexpr (lisp-to-maxima lexpr))
-	 (mstring (format nil "~a" mexpr))
+	 (mstring (format nil "~a" (keywords-to-strings mexpr)))
 	 (lfuns (match-lisp-funs mstring))
 	 (rfuns (loop for lfun in lfuns collect (format nil "~a" (gensym)))))
     (maxima-to-lisp

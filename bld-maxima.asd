@@ -10,4 +10,4 @@
     :description "Simplify Lisp expressions using Maxima"
     :components 
     ((:file "maxima"))
-    :depends-on ("cl-ppcre" "embeddable-maxima"))
+    :depends-on ("cl-ppcre" "embeddable-maxima" "bld-utils"))
