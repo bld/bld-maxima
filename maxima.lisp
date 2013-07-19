@@ -28,6 +28,35 @@
 
 (in-package :bld-maxima)
 
+;; Some utility functions
+
+(defun map-subst-if (fn test tree)
+  "Map a function on elements of tree that pass test"
+  (if (funcall test tree)
+      (funcall fn tree)
+      (if (atom tree)
+	  tree
+	  (cons (map-subst-if fn test (car tree))
+		(map-subst-if fn test (cdr tree))))))
+
+(defun ratiop (r)
+  "Test if object is a ratio"
+  (typep r 'ratio))
+
+(defun ratio-to-quotient (r)
+  "Turn ratio to quotient"
+  `(/ ,(numerator r) ,(denominator r)))
+
+(defun ratp (r)
+  "Test if expression is a Maxima RAT (rational)"
+  (and (consp r)
+       (consp (car r))
+       (eql (caar r) 'maxima::rat)))
+
+(defun rat-to-ratio (r)
+  "Convert Maxima RAT expression to Lisp ratio"
+  (cl:/ (second r) (third r)))
+
 ;; Define %PI variable to be Maxima %PI for simplifying trig relationships
 (defparameter %pi 'maxima::$%pi)
 
@@ -132,13 +161,14 @@
 
 (defun lisp-to-maxima (lexpr)
   "Convert Lisp to Maxima expression"
-  (loop for (m l) in *maxima-lisp-table-intern*
-     for mexpr = (subst (list m) l lexpr)
-     then (nsubst (list m) l mexpr)
+  (loop for (maxima lisp) in *maxima-lisp-table-intern*
+     for mexpr = (subst (list maxima) lisp (map-subst-if #'ratio-to-quotient #'ratiop lexpr))
+     then (nsubst (list maxima) lisp mexpr)
      finally (return mexpr)))
 
 (defun maxima-to-lisp (mexpr)
-  (let ((lexpr (copy-tree mexpr)))
+  "Convert maxima expression to lisp expression"
+  (let ((lexpr (map-subst-if #'rat-to-ratio #'ratp (copy-tree mexpr))))
     (loop for (maxima lisp) in *maxima-lisp-table-intern*
        do (setq lexpr (nsubst lisp (list maxima 'maxima::simp) lexpr :test #'equal))
        do (setq lexpr (nsubst lisp (list maxima 'maxima::simp 'maxima::ratsimp) lexpr :test #'equal))

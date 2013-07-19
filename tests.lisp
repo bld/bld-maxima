@@ -55,21 +55,21 @@
   (is (equal (simp '(/ a a)) 1))
   (is (equal (simp '(/ (aref a 2) (aref a 2))) 1))
   (is (equal (simp '(/ (* a a) a)) 'a))
-  (is (equal (simp (list '/ 1 2)) '(/ 1 2)))
-  (is (equal (simp (list '/ 2 4)) '(/ 1 2))))
+  (is (equal (simp (list '/ 1 2)) 1/2))
+  (is (equal (simp (list '/ 2 4)) 1/2)))
 
 (test sin
   (is (zerop (simp `(sin ,%pi))))
   (is (equal (simp `(sin (/ ,%pi 2))) 1))
   (is (equal (simp `(sin (/ ,%pi 3))) (simp '(/ (sqrt 3) 2))))
   (is (equal (simp `(sin (/ ,%pi 4))) (simp '(/ (sqrt 2) 2))))
-  (is (equal (simp `(sin (/ ,%pi 6))) '(/ 1 2)))
+  (is (equal (simp `(sin (/ ,%pi 6))) 1/2))
   (is (equal (simp '(sin 0)) 0)))
 
 (test cos
   (is (equal (simp `(cos ,%pi)) -1))
   (is (equal (simp `(cos (/ ,%pi 2))) 0))
-  (is (equal (simp `(cos (/ ,%pi 3))) '(/ 1 2)))
+  (is (equal (simp `(cos (/ ,%pi 3))) 1/2))
   (is (equal (simp `(cos (/ ,%pi 4))) (simp '(/ (sqrt 2) 2))))
   (is (equal (simp `(cos (/ ,%pi 6))) (simp '(/ (sqrt 3) 2))))
   (is (equal (simp '(cos 0)) 1)))
