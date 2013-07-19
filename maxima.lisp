@@ -43,9 +43,9 @@
   "Test if object is a ratio"
   (typep r 'ratio))
 
-(defun ratio-to-quotient (r)
-  "Turn ratio to quotient"
-  `(/ ,(numerator r) ,(denominator r)))
+(defun ratio-to-rat (r)
+  "Turn ratio to Maxima RAT"
+  `((maxima::rat) ,(numerator r) ,(denominator r)))
 
 (defun ratp (r)
   "Test if expression is a Maxima RAT (rational)"
@@ -162,7 +162,7 @@
 (defun lisp-to-maxima (lexpr)
   "Convert Lisp to Maxima expression"
   (loop for (maxima lisp) in *maxima-lisp-table-intern*
-     for mexpr = (subst (list maxima) lisp (map-subst-if #'ratio-to-quotient #'ratiop lexpr))
+     for mexpr = (subst (list maxima) lisp (map-subst-if #'ratio-to-rat #'ratiop lexpr))
      then (nsubst (list maxima) lisp mexpr)
      finally (return mexpr)))
 
