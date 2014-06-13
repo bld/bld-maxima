@@ -9,17 +9,27 @@
 (defvar *maxima-socket-init-forms* ; list of initial Maxima forms to execute on start
   '("display2d : false" ; Show results without 2D rendering
     "load(\"linearalgebra\")")) ; load linearalgebra library for jacobi routine
-(defvar *maxima-host* "localhost")
+(defvar *maxima-host* "127.0.0.1")
 (defvar *maxima-socket-passive* nil)
 (defvar *maxima-socket* nil)
 (defvar *maxima-pid* nil)
+(defvar *maxima-process* nil)
 
 (defun maxima-listen ()
   "Setup a server socket to listen to Maxima process"
   (setq *maxima-socket-passive* (socket-listen *maxima-host* *maxima-port*)))
 
 (defun maxima-run ()
-  (run-shell-command "~a ~a -s ~a &~%" *maxima-binary* *maxima-socket-options* *maxima-port*))
+  "Run Maxima in the background, connecting to previously setup *MAXIMA-SOCKET*"
+  #+sbcl (setq *maxima-process* 
+	       (sb-ext:run-program 
+		*maxima-binary* 
+		(list *maxima-socket-options*
+		      "-s"
+		      (princ-to-string *maxima-port*))
+		:wait nil
+		:search t))
+  #-sbcl (error "Sorry, only SBCL supported for now."))
 
 (defun maxima-accept ()
   "Accept socket connection to Maxima process"
@@ -93,3 +103,11 @@
     (values
      (mlist-to-array (second result)) ; eigenvalues
      (matrix-to-array (third result))))) ; eigenvectors
+
+(defmacro with-maxima (&body body)
+  (let ((result (gensym)))
+    `(progn
+       (maxima-start)
+       (let ((,result (progn ,@body)))
+	 (maxima-shutdown)
+	 ,result))))

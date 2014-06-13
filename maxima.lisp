@@ -4,7 +4,6 @@
 
 (defpackage :bld-maxima
   (:use :common-lisp :cl-ppcre :usocket)
-  (:import-from :kmrcl :command-output :run-shell-command)
   (:export :*delay*
 	   :*maxima-binary*
 	   :*maxima-batch-options*
@@ -35,8 +34,8 @@
 (in-package :bld-maxima)
 
 (defvar *delay* nil "Check whether to defer evaluation")
-(defparameter *maxima-binary* "/usr/bin/maxima")
-(defparameter *maxima-batch-options* "-q --batch-string \"display2d : false$ ")
+(defvar *maxima-binary* "maxima")
+(defvar *maxima-batch-options* "-q -r \"display2d : false$ ")
 (defvar *maxima-init-expressions* nil)
 (defparameter *maxima-lisp-table*
   '((mplus +)
@@ -96,11 +95,20 @@
 
 (defun run-maxima-command (string)
   "evaluate maxima expression string"
-  (command-output 
+  #+null(command-output 
    "~a ~a ~a;\"" 
    *maxima-binary* 
    (apply #'concatenate 'string *maxima-batch-options* *maxima-init-expressions*)
-   string))
+   string)
+  (uiop/run-program:run-program
+   (print (concatenate 'string 
+		       *maxima-binary*
+		       " "
+		       *maxima-batch-options*
+		       *maxima-init-expressions*
+		       string
+		       ";\""))
+   :output :string))
 
 (defun run-maxima-lisp (string)
   "execute a string using maxima's internal lisp, returning last expression as a string"

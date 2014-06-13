@@ -11,4 +11,4 @@
     :components 
     ((:file "maxima")
      (:file "maxima-socket" :depends-on ("maxima")))
-    :depends-on ("kmrcl" "cl-ppcre" "usocket"))
+    :depends-on ("cl-ppcre" "usocket"))
