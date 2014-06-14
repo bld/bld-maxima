@@ -70,7 +70,7 @@
   (maxima-accept)
   (mapcar #'maxima-send *maxima-socket-init-forms*))
 
-(defun simp-socket (lisp-expr)
+(defun simp (lisp-expr &optional (simpfun '$ev))
   "Simplify a lisp math expression using a Maxima socket connection"
   (if 
    *delay* lisp-expr
@@ -87,24 +87,25 @@
 	 (second
 	  (maxima-send-lisp
 	   (format
-	    nil "(simplify '~a)"
+	    nil "(mfuncall '~a '~a)" simpfun
 	    (rename-lisp-funs maxima-string lisp-funs ren-funs)))))
 	lisp-funs
 	ren-funs))))))
 
-(defun jacobi-socket (a)
-  "Calculate eigenvalues & eigenvectors of a 2D real symmetric array using Maxima's EIGENS_BY_JACOBI"
-  (let* ((*read-default-float-format* 'double-float)
-	 (result 
-	  (second
-	   (maxima-send-lisp
-	    (format nil "(mfuncall '\\$eigens_by_jacobi ~a)"
-		    (array-to-matrix a))))))
-    (values
-     (mlist-to-array (second result)) ; eigenvalues
-     (matrix-to-array (third result))))) ; eigenvectors
+(defun trigreduce (lexpr)
+  (simp lexpr '$trigreduce))
+
+(defun trigexpand (lexpr)
+  (simp lexpr '$trigexpand))
+
+(defun trigsimp (lexpr)
+  (simp lexpr '$trigsimp))
+
+(defun trigrat (lexpr)
+  (simp lexpr '$trigrat))
 
 (defmacro with-maxima (&body body)
+  "Create an environment with Maxima running in the background to access"
   (let ((result (gensym)))
     `(progn
        (maxima-start)

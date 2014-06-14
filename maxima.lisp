@@ -2,39 +2,11 @@
 ;; Converts CL math expressions to Maxima equivalent and evaluates them in Maxima's Lisp level to simplify them
 ;; Results are returned and extracted from the Maxima output
 
-(defpackage :bld-maxima
-  (:use :common-lisp :cl-ppcre :usocket)
-  (:export :*delay*
-	   :*maxima-binary*
-	   :*maxima-batch-options*
-	   :*maxima-init-expressions*
-	   :*maxima-lisp-table*
-	   :simp
-	   :simp-exprs
-	   :jacobi
-	   :run-maxima-command
-	   :run-maxima-lisp
-	   :*maxima-port*
-	   :*maxima-socket-options*
-	   :*maxima-socket-init-forms*
-	   :*maxima-host*
-	   :*maxima-socket-passive*
-	   :*maxima-socket*
-	   :*maxima-pid*
-	   :maxima-start
-	   :maxima-shutdown
-	   :maxima-read
-	   :maxima-send
-	   :maxima-send-lisp
-	   :simp-socket
-	   :jacobi-socket
-	   :atan2
-	   :delay))
 
 (in-package :bld-maxima)
 
 (defvar *delay* nil "Check whether to defer evaluation")
-(defvar *maxima-binary* "maxima")
+(defvar *maxima-binary* #+win32 "maxima.bat" #+unix "maxima")
 (defvar *maxima-batch-options* "-q -r \"display2d : false$ ")
 (defvar *maxima-init-expressions* nil)
 (defparameter *maxima-lisp-table*
@@ -80,65 +52,6 @@
 	"*"
 	"+")
   "regular expression special characters")
-
-(defun array-to-matrix (a)
-  "Convert a lisp 2D array to Maxima matrix form"
-  (loop with string = "(mfuncall '\\$matrix"
-     with (n m) = (array-dimensions a)
-     for i below n
-     do (setq string (concatenate 'string string " '((mlist)"))
-       (loop for j below m
-	  do (setq string (concatenate 'string string (format nil " ~a" (aref a i j))))
-	  finally (setq string (concatenate 'string string ")")))
-     finally (setq string (concatenate 'string string ")"))
-       (return string)))
-
-(defun run-maxima-command (string)
-  "evaluate maxima expression string"
-  #+null(command-output 
-   "~a ~a ~a;\"" 
-   *maxima-binary* 
-   (apply #'concatenate 'string *maxima-batch-options* *maxima-init-expressions*)
-   string)
-  (uiop/run-program:run-program
-   (print (concatenate 'string 
-		       *maxima-binary*
-		       " "
-		       *maxima-batch-options*
-		       *maxima-init-expressions*
-		       string
-		       ";\""))
-   :output :string))
-
-(defun run-maxima-lisp (string)
-  "execute a string using maxima's internal lisp, returning last expression as a string"
-  (scan-to-strings "\\n[\\s\\S]*"
-		   (nth (1+ (length *maxima-init-expressions*))
-			(split "\\(%i[\\d]+\\)"
-			       (run-maxima-command 
-				(format nil ":lisp ~a" string))))))
-
-(defun matrix-to-array (mm)
-  "Convert maxima matrix as list expression to lisp 2D array"
-  (let ((rows (1- (length mm)))
-	(cols (1- (length (second mm)))))
-    (make-array (list rows cols)
-		:initial-contents
-		(mapcar #'rest (rest mm)))))
-
-(defun mlist-to-array (ml)
-  (make-array (1- (length ml)) :initial-contents (rest ml)))
-
-(defun jacobi (a)
-  "Find eigenvalues of an array using Maxima's eigens_by_jacobi function"
-  (let ((*maxima-init-expressions* (list "load(\"linearalgebra\")$"))
-	(*read-default-float-format* 'double-float))
-    (let ((result
-	   (read-from-string
-	    (run-maxima-lisp (format nil "(mfuncall '\\$eigens_by_jacobi ~a)" (array-to-matrix a))))))
-      (values
-       (mlist-to-array (second result)) ; eigenvalues
-       (matrix-to-array (third result)))))) ; eigenvectors
 
 (defun match-lisp-funs (string)
   "Regular expression match of (function args). Doesn't match ((maximafun) args). Returns list of matches."
@@ -198,53 +111,6 @@
        do (setq lisp-string
 		(regex-replace-all (format nil "\\(~a SIMP\\)" maxima) lisp-string lisp)))
     lisp-string))
-
-(defun simplify-lisp-string (lisp-string)
-  "Convert a lisp expression as a string to maxima, and run in maxima to simplify"
-  (let* ((maxima-string (lisp-to-maxima-string lisp-string))
-	 (lisp-funs (match-lisp-funs maxima-string))
-	 (ren-funs (loop for lisp-fun in lisp-funs collect (format nil "~a" (gensym)))))
-    (maxima-to-lisp-string
-     (re-rename-lisp-funs
-      (run-maxima-lisp
-       (format nil "(simplify '~a)"
-	       (rename-lisp-funs maxima-string lisp-funs ren-funs)))
-      lisp-funs
-      ren-funs))))
-
-(defun simplify-lisp-strings (&rest lisp-strings)
-  "Simplify multiple lisp string expressions"
-  (let* ((maxima-string-list (mapcar #'lisp-to-maxima-string lisp-strings))
-	 (lisp-funs-list (mapcar #'match-lisp-funs maxima-string-list))
-	 (ren-funs-list (loop for lisp-funs in lisp-funs-list
-			   collect (loop for lisp-fun in lisp-funs
-				      collect (format nil "~a" (gensym)))))
-	 (renamed-funs-strings (mapcar #'rename-lisp-funs maxima-string-list lisp-funs-list ren-funs-list))
-	 (maxima-output (run-maxima-lisp (format nil "(mapcar #'simplify '(~{~a ~}))" renamed-funs-strings)))
-	 (maxima-output-list (mapcar #'(lambda (l) (format nil "~a" l)) (read-from-string maxima-output))))
-    (mapcar #'(lambda (output lisp-funs ren-funs)
-		(maxima-to-lisp-string
-		 (re-rename-lisp-funs output lisp-funs ren-funs)))
-	    maxima-output-list
-	    lisp-funs-list
-	    ren-funs-list)))
-
-(defun simp (lisp-expr)
-  "Simplify a mathematical lisp expression"
-    (if *delay* 
-	lisp-expr
-	(let ((*read-default-float-format* 'double-float))
-	  (read-from-string (simplify-lisp-string (format nil "~a" lisp-expr))))))
-
-(defun simp-exprs (&rest exprs)
-  "Simplify a list of mathematical Lisp expressions"
-  (if *delay*
-      exprs
-      (let ((*read-default-float-format* 'double-float))
-	(mapcar #'read-from-string 
-		(apply #'simplify-lisp-strings 
-		       (mapcar #'(lambda (expr) (format nil "~a" expr)) 
-			       exprs))))))
 
 (defmacro delay (&body body)
   "Delay simplification of a block of code"

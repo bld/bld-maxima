@@ -30,6 +30,13 @@ CL-USER> (bld-maxima:jacobi-socket #2a((1 2)(2 1)))
 CL-USER> (bld-maxima:maxima-shutdown)
 T
 
+Alternatively, you can run these routines inside the WITH-MAXIMA macro:
+
+CL-USER> (with-maxima
+	   (simp-socket '(+ a a)))
+(* 2 A)
+CL-USER> 
+
 simp-exprs
 ==========
 

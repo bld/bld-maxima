@@ -1,14 +1,10 @@
-(defpackage :bld.maxima.system
-  (:use :asdf :cl))
-(in-package :bld.maxima.system)
-(defsystem :bld-maxima
+(asdf:defsystem :bld-maxima
     :name "bld-maxima"
     :author "Benjamin L. Diedrich <ben@solarsails.info>"
-    :version "0.0.1"
-    :maintainer "Benjamin L. Diedrich <ben@solarsails.info>"
     :license "MIT"
     :description "Send commands to Maxima program, including simplification of Lisp math expressions."
-    :components 
-    ((:file "maxima")
-     (:file "maxima-socket" :depends-on ("maxima")))
-    :depends-on ("cl-ppcre" "usocket"))
+    :depends-on ("cl-ppcre" "usocket")
+    :serial t
+    :components ((:file "package")
+		 (:file "maxima")
+		 (:file "maxima-socket")))
