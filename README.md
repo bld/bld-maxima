@@ -1,53 +1,58 @@
-BLD-MAXIMA calls Maxima to evaluate Maxima or Maxima lisp-level expressions.
-It includes translation of Lisp math expressions to Maxima for algebraic simplification.
-Lisp forms that aren't in the translation table are identified and treated as symbols in Maxima.
-Depends on KMRCL for COMMAND-OUTPUT to run Maxima & get output.
-Depends on CL-PPCRE for translating Lisp -> Maxima -> Lisp.
+BLD-MAXIMA runs a Maxima process in the background with a socket
+connection through with commands and Lisp math code can be sent for
+evaluation. It includes translation of Lisp math expressions to Maxima
+for algebraic simplification. Lisp forms that aren't in the
+translation table are identified and treated as symbols in Maxima.
+Depends on CL-PPCRE for translating Lisp -> Maxima -> Lisp. Currently,
+only SBCL is supported, using SB-EXT:RUN-PROGRAM to run Maxima in the
+background. This has been tested on both Win32 and Linux (both
+X86-64). The WITH-MAXIMA macro is provided to start & shutdown the
+Maxima process around whatever expressions are passed to it.
 
-Usage:
-CL-USER> (asdf:load-system 'bld-maxima)
-CL-USER> (bld-maxima:simp '(+ (aref a 2) (aref a 2)))
-(* 2 (AREF A 2))
+Routines
+========
 
-Socket routines
-===============
-Allow running a single Maxima process and sending it commands or lisp math code to simplify over a network socket.
-Depends on USOCKET.
-Should run faster than non-socket version.
-Requires MAXIMA-START to run a socket connected Maxima session, and MAXIMA-SHUTDOWN once finished sending computations.
+Allow running a single Maxima process and sending it commands or lisp
+math code to simplify over a network socket.  Depends on USOCKET.
+Requires MAXIMA-START to run a socket connected Maxima session, and
+MAXIMA-SHUTDOWN once finished sending computations. Or, run inside
+WITH-MAXIMA macro.
 
-Usage:
-CL-USER> (bld-maxima:maxima-start)
-(((%I1) (%O1) FALSE)
- ((%I2) (%O2) "/usr/share/maxima/5.20.1/share/linearalgebra/linearalgebra.mac"))
-CL-USER> (bld-maxima:simp-socket '(+ (aref a 2) (aref a 2)))
-(* 2 (AREF A 2))
-16
-CL-USER> (bld-maxima:jacobi-socket #2a((1 2)(2 1)))
-#(-1.0d0 3.0d0)
-#2A((0.7071067811865476d0 0.7071067811865475d0)
-    (-0.7071067811865475d0 0.7071067811865476d0))
-CL-USER> (bld-maxima:maxima-shutdown)
-T
+Usage
+-----
+
+    CL-USER> (bld-maxima:maxima-start)
+    (((%I1) (%O1) FALSE)
+     ((%I2) (%O2) "/usr/share/maxima/5.20.1/share/linearalgebra/linearalgebra.mac"))
+    CL-USER> (bld-maxima:simp '(+ (aref a 2) (aref a 2)))
+    (* 2 (AREF A 2))
+    16
+    CL-USER> (bld-maxima:maxima-shutdown)
+    T
 
 Alternatively, you can run these routines inside the WITH-MAXIMA macro:
 
-CL-USER> (with-maxima
-	   (simp-socket '(+ a a)))
-(* 2 A)
-CL-USER> 
+    CL-USER> (with-maxima
+                (simp '(+ a a)))
+    (* 2 A)
+    CL-USER> 
 
-simp-exprs
-==========
+Also, trigonometric simplification functions are available
+corresponding to those in Maxima:
 
-The 'simp-exprs function takes a series of math expressions as
-arguments and simplifies all of them with one call to Maxima instead
-of several.
+    CL-USER> (with-maxima (trigreduce '(expt (cos x) 2)))
+    (* (/ 1 2) (+ 1 (COS (* 2 X))))
+    CL-USER> (with-maxima (trigexpand '(cos (* 2 x))))
+    (+ (EXPT (COS X) 2) (* -1 (EXPT (SIN X) 2)))
+    CL-USER> (with-maxima (trigsimp '(+ (expt (sin x) 2) (expt (cos x) 2))))
+    1
+
+
 
 Delay
-=====
+-----
 
-Wrapping the 'delay' macro around a 'simp or 'simp-socket expression
-prevents evaluation so it can be deferred until later, which can speed
+Wrapping the 'delay' macro around a 'simp expression prevents
+evaluation so it can be deferred until later, which can speed
 computations in certain circumstances because of the overhead incurred
-by 'simp and 'simp-socket.
+by 'simp.
