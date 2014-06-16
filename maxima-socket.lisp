@@ -70,40 +70,6 @@
   (maxima-accept)
   (mapcar #'maxima-send *maxima-socket-init-forms*))
 
-(defun simp (lisp-expr &optional (simpfun '$ev))
-  "Simplify a lisp math expression using a Maxima socket connection"
-  (if 
-   *delay* lisp-expr
-   (let* ((maxima-string (lisp-to-maxima-string (format nil "~a" lisp-expr)))
-	  (lisp-funs (match-lisp-funs maxima-string))
-	  (ren-funs (loop repeat (length lisp-funs) 
-		       collect (format nil "~a" (gensym))))
-	  (*read-default-float-format* 'double-float))
-     (read-from-string
-      (maxima-to-lisp-string
-       (re-rename-lisp-funs
-	(format
-	 nil "~a"
-	 (second
-	  (maxima-send-lisp
-	   (format
-	    nil "(mfuncall '~a '~a)" simpfun
-	    (rename-lisp-funs maxima-string lisp-funs ren-funs)))))
-	lisp-funs
-	ren-funs))))))
-
-(defun trigreduce (lexpr)
-  (simp lexpr '$trigreduce))
-
-(defun trigexpand (lexpr)
-  (simp lexpr '$trigexpand))
-
-(defun trigsimp (lexpr)
-  (simp lexpr '$trigsimp))
-
-(defun trigrat (lexpr)
-  (simp lexpr '$trigrat))
-
 (defmacro with-maxima (&body body)
   "Create an environment with Maxima running in the background to access"
   (let ((result (gensym)))
