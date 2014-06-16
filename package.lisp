@@ -24,4 +24,6 @@
 	   :trigreduce
 	   :trigexpand
 	   :trigsimp
-	   :trigrat))
+	   :trigrat
+	   :%pi
+	   :%e))
