@@ -7,7 +7,6 @@
 
 (defvar *delay* nil "Check whether to defer evaluation")
 (defvar *maxima-binary* #+win32 "maxima.bat" #+unix "maxima")
-(defvar *maxima-batch-options* "-q -r \"display2d : false$ ")
 (defvar *maxima-init-expressions* nil)
 (defparameter *maxima-lisp-table*
   '((mplus +)
@@ -109,7 +108,7 @@
 	 (lisp-string (format nil "~a" (read-from-string maxima-string)))) ; fix Maxima output
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq lisp-string
-		(regex-replace-all (format nil "\\(~a SIMP\\)" maxima) lisp-string lisp)))
+		(regex-replace-all (format nil "\\(~a( SIMP)?( RATSIMP)?\\)" maxima) lisp-string lisp)))
     lisp-string))
 
 (defmacro delay (&body body)
