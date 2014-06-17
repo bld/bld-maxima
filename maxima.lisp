@@ -8,16 +8,26 @@
 (defvar *delay* nil "Check whether to defer evaluation")
 (defvar *maxima-binary* #+win32 "maxima.bat" #+unix "maxima")
 (defvar *maxima-init-expressions* nil)
+
+;; Utility functions to fix rationals
+
+(defun rat-string-to-ratio (ratstring)
+  "Replace Maxima RAT expression with Lisp ratio"
+  (regex-replace-all "\\(\\(RAT( SIMP)?( RATSIMP)?\\) (\\d+) (\\d+)\\)" ratstring "\\3/\\4"))
+
+;; PI and E
+(defparameter %pi '$%pi)
+(defparameter %e '$%e)
+
+;; Lookup table of maxima vs lisp symbols
 (defparameter *maxima-lisp-table*
   '((mplus +)
     (mminus -)
     (mtimes *)
     (mexpt expt)
     (mlist list)
-;;    (mequal =) ; comparison operators not really useful with Maxima
-;;    (mgreaterp >)
     (mabs abs)
-    (rat /)
+    (mquotient /)
     (%sin sin)
     (%cos cos)
     (%tan tan)
@@ -26,10 +36,15 @@
     (%sqrt sqrt)
     (%sinh sinh)
     (%cosh cosh)
+    (%tanh tanh)
     (%atan atan)
     (%atan2 atan2)
+    (%asin asin)
+    (%acos acos)
     (%signum signum)
-    (%max max))
+    ($max max)
+    ($min min)
+    (rat /))
   "lookup table of maxima > lisp expressions")
 
 (defmethod atan2 ((n1 number)(n2 number))
@@ -37,7 +52,7 @@
 
 (defparameter *maxima-lisp-table-string*
   (loop for (m l) in *maxima-lisp-table*
-     collect (list (format nil "~a" m) (format nil "~a" l)))
+     collect (list (princ-to-string m) (princ-to-string l)))
   "*maxima-lisp-table* converted to list of strings")
 
 (defparameter *regex-symbols*
@@ -105,7 +120,10 @@
 (defun maxima-to-lisp-string (maxima-string)
   "convert simplified maxima output string to lisp string"
   (let* ((*read-default-float-format* 'double-float)
-	 (lisp-string (format nil "~a" (read-from-string maxima-string)))) ; fix Maxima output
+	 ;; fix Maxima output & replace RAT with ratios
+	 (lisp-string 
+	  (rat-string-to-ratio
+	   (princ-to-string (read-from-string maxima-string)))))
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq lisp-string
 		(regex-replace-all (format nil "\\(~a( SIMP)?( RATSIMP)?\\)" maxima) lisp-string lisp)))
@@ -115,3 +133,37 @@
   "Delay simplification of a block of code"
   `(let ((bld-maxima::*delay* t))
      ,@body))
+
+(defun simplify-lisp-expr (lexpr &optional (simpfun '$ev))
+  "Simplify a lisp expression using socket to Maxima"
+  (let* ((mstring (lisp-to-maxima-string (princ-to-string lexpr)))
+	 (lfuns (match-lisp-funs mstring))
+	 (rfuns (loop for lfun in lfuns
+		   collect (princ-to-string (gensym)))))
+    (read-from-string
+     (maxima-to-lisp-string
+      (re-rename-lisp-funs
+       (princ-to-string
+	(second
+	 (maxima-send-lisp
+	  (format nil "(mfuncall '~a '~a)"
+		  simpfun
+		  (rename-lisp-funs mstring lfuns rfuns)))))
+       lfuns rfuns)))))
+
+(defun simp (lexpr &optional (simpfun '$ev))
+  "Simplify a lisp math expression using specified Maxima
+simplification function. Just return the expression if *DELAY* is T."
+  (if *delay* lexpr (simplify-lisp-expr lexpr simpfun)))
+
+(defun trigreduce (lexpr)
+  (simp lexpr '$trigreduce))
+
+(defun trigexpand (lexpr)
+  (simp lexpr '$trigexpand))
+
+(defun trigsimp (lexpr)
+  (simp lexpr '$trigsimp))
+
+(defun trigrat (lexpr)
+  (simp lexpr '$trigrat))
