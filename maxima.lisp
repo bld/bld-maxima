@@ -126,7 +126,9 @@
 	   (princ-to-string (read-from-string maxima-string)))))
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq lisp-string
-		(regex-replace-all (format nil "\\(~a( SIMP)?( RATSIMP)?\\)" maxima) lisp-string lisp)))
+		(regex-replace-all 
+		 (format nil "\\(~a( SIMP)?( RATSIMP)?\\)" (regexify-specials maxima)) 
+		 lisp-string lisp)))
     lisp-string))
 
 (defmacro delay (&body body)

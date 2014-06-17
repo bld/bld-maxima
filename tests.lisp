@@ -135,12 +135,14 @@
 (test max
   (is (equal (simp (list 'max 'a)) 'a))
   (is (equal (simp '(max 1 3 5 4 2)) 5))
-  (is (equal (simp '(max 1 3 5 a 4 3)) (simp '(max 5 a)))))
+  (is (equal (simp '(max 1 3 5 a 4 3)) (simp '(max 5 a))))
+  (is (equal (simp '(max a b c)) '(max a b c))))
 
 (test min
   (is (equal (simp (list 'min 'a)) 'a))
   (is (equal (simp '(min 1 3 5 4 2)) 1))
-  (is (equal (simp '(min 1 3 5 a 4 3)) (simp '(min 1 a)))))
+  (is (equal (simp '(min 1 3 5 a 4 3)) (simp '(min 1 a))))
+  (is (equal (simp '(min a b c)) '(min a b c))))
 
 (test maxima-start)
 
