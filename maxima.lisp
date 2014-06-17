@@ -13,7 +13,7 @@
 
 (defun rat-string-to-ratio (ratstring)
   "Replace Maxima RAT expression with Lisp ratio"
-  (regex-replace-all "\\(\\(RAT( SIMP)?( RATSIMP)?\\) (\\d+) (\\d+)\\)" ratstring "\\3/\\4"))
+  (regex-replace-all "\\(\\(RAT( SIMP)?( RATSIMP)?\\) (-?\\d+) (\\d+)\\)" ratstring "\\3/\\4"))
 
 ;; PI and E
 (defparameter %pi '$%pi)
@@ -67,9 +67,16 @@
 	"+")
   "regular expression special characters")
 
+;; Regular expressions to use for matching lisp expressions
+(defparameter *lisp-fun-regex* "\\([^\\(^\\)^\\s]+ [^\\(^\\)]+\\)")
+(defparameter *keyword-regex* ":\\w+")
+
 (defun match-lisp-funs (string)
   "Regular expression match of (function args). Doesn't match ((maximafun) args). Returns list of matches."
-  (remove-duplicates (all-matches-as-strings "\\([^\\(^\\)^\\s]+ [^\\(^\\)]+\\)" string) :test #'equal))
+  (remove-duplicates 
+   (all-matches-as-strings 
+    (format nil "(~a|~a)" *lisp-fun-regex* *keyword-regex*)
+    string) :test #'equal))
 
 (defun match-re-lisp-funs (string)
   "Match renamed lisp functions"
@@ -138,20 +145,20 @@
 
 (defun simplify-lisp-expr (lexpr &optional (simpfun '$ev))
   "Simplify a lisp expression using socket to Maxima"
-  (let* ((mstring (lisp-to-maxima-string (princ-to-string lexpr)))
+  (let* ((mstring (lisp-to-maxima-string (prin1-to-string lexpr)))
 	 (lfuns (match-lisp-funs mstring))
 	 (rfuns (loop for lfun in lfuns
 		   collect (princ-to-string (gensym)))))
     (read-from-string
-     (maxima-to-lisp-string
-      (re-rename-lisp-funs
+     (re-rename-lisp-funs
+      (maxima-to-lisp-string
        (princ-to-string
 	(second
 	 (maxima-send-lisp
-	  (format nil "(mfuncall '~a '~a)"
+	  (format nil "(mfuncall '~a '~a)" 
 		  simpfun
-		  (rename-lisp-funs mstring lfuns rfuns)))))
-       lfuns rfuns)))))
+		  (rename-lisp-funs mstring lfuns rfuns))))))
+      lfuns rfuns))))
 
 (defun simp (lexpr &optional (simpfun '$ev))
   "Simplify a lisp math expression using specified Maxima
