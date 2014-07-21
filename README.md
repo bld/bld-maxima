@@ -1,3 +1,6 @@
+bld-maxima
+==========
+
 BLD-MAXIMA runs a Maxima process in the background with a socket
 connection through with commands and Lisp math code can be sent for
 evaluation. It includes translation of Lisp math expressions to Maxima
@@ -10,7 +13,7 @@ X86-64). The WITH-MAXIMA macro is provided to start & shutdown the
 Maxima process around whatever expressions are passed to it.
 
 Routines
-========
+--------
 
 Allow running a single Maxima process and sending it commands or lisp
 math code to simplify over a network socket.  Depends on USOCKET.
@@ -46,7 +49,6 @@ corresponding to those in Maxima:
     (+ (EXPT (COS X) 2) (* -1 (EXPT (SIN X) 2)))
     CL-USER> (with-maxima (trigsimp '(+ (expt (sin x) 2) (expt (cos x) 2))))
     1
-
 
 
 Delay
