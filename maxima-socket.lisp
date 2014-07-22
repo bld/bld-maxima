@@ -21,15 +21,13 @@
 
 (defun maxima-run ()
   "Run Maxima in the background, connecting to previously setup *MAXIMA-SOCKET*"
-  #+sbcl (setq *maxima-process* 
-	       (sb-ext:run-program 
-		*maxima-binary* 
-		(list *maxima-socket-options*
-		      "-s"
-		      (princ-to-string *maxima-port*))
-		:wait nil
-		:search t))
-  #-sbcl (error "Sorry, only SBCL supported for now."))
+  (setq *maxima-process*
+	(uiop/run-program::%run-program
+	 (list *maxima-binary* 
+	       *maxima-socket-options*
+	       "-s"
+	       (princ-to-string *maxima-port*))
+	 :wait nil)))
 
 (defun maxima-accept ()
   "Accept socket connection to Maxima process"
