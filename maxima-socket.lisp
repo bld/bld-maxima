@@ -70,9 +70,8 @@
 
 (defmacro with-maxima (&body body)
   "Create an environment with Maxima running in the background to access"
-  (let ((result (gensym)))
-    `(progn
-       (maxima-start)
-       (let ((,result (progn ,@body)))
-	 (maxima-shutdown)
-	 ,result))))
+  `(unwind-protect
+	(progn
+	  (maxima-start)
+	  ,@body)
+     (maxima-shutdown)))
