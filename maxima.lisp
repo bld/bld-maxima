@@ -13,7 +13,35 @@
 
 (defun rat-string-to-ratio (ratstring)
   "Replace Maxima RAT expression with Lisp ratio"
-  (regex-replace-all "\\(\\(RAT( SIMP)?( RATSIMP)?\\) (-?\\d+) (\\d+)\\)" ratstring "\\3/\\4"))
+  (regex-replace-all 
+   "\\(\\(RAT( SIMP)?( RATSIMP)?\\) (-?\\d+) (\\d+)\\)"
+   ratstring "\\3/\\4"))
+
+(defun ratio-to-rat-string (ratiostring)
+  "Replace Lisp ratio with RAT expression"
+  (regex-replace-all
+   "(-?\\d+)/(-?\\d+)"
+   ratiostring
+   "((RAT) \\1 \\2)"))
+
+;; Fix exponent functions to (sqrt ...), (/ ...), (/ (sqrt ...)) 
+
+(defun expt-to-sqrt (exptstring)
+  "Replace (EXPT FORM 1/2) to SQRT expression"
+  (regex-replace-all
+   "\\(EXPT (.*) 1/2\\)"
+   (remove #\Newline exptstring) "(SQRT \\1)"))
+
+(defun expt-to-invsqrt (exptstring)
+  "Replace Lisp (EXPT FORM -1/2) to (/ (SQRT FORM)) expression"
+  (regex-replace-all
+   "\\(EXPT (.*) -1/2\\)"
+   (remove #\Newline exptstring) "(/ (SQRT \\1))"))
+
+(defun expt-to-/ (exptstring)
+  (regex-replace-all
+   "\\(EXPT (.*) -1\\)"
+   (remove #\Newline exptstring) "(/ \\1)"))
 
 ;; PI and E
 (defparameter %pi '$%pi)
@@ -122,21 +150,24 @@
 		 (regexify-specials (concatenate 'string "(" lisp " "))
 		 maxima-string 
 		 (concatenate 'string "((" maxima ") "))))
-    maxima-string))
+    (ratio-to-rat-string maxima-string)))
 
 (defun maxima-to-lisp-string (maxima-string)
   "convert simplified maxima output string to lisp string"
   (let* ((*read-default-float-format* 'double-float)
 	 ;; fix Maxima output & replace RAT with ratios
-	 (lisp-string 
+	 (lisp-string
 	  (rat-string-to-ratio
-	   (princ-to-string (read-from-string maxima-string)))))
+	   maxima-string)))
     (loop for (maxima lisp) in *maxima-lisp-table-string*
        do (setq lisp-string
 		(regex-replace-all 
 		 (format nil "\\(~a( SIMP)?( RATSIMP)?\\)" (regexify-specials maxima)) 
 		 lisp-string lisp)))
-    lisp-string))
+    (expt-to-sqrt
+     (expt-to-invsqrt
+      (expt-to-/
+       lisp-string)))))
 
 (defmacro delay (&body body)
   "Delay simplification of a block of code"
