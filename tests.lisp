@@ -59,24 +59,24 @@
   (is (equal (simp (list '/ 2 4)) 1/2)))
 
 (test sin
-  (is (zerop (simp `(sin ,%pi))))
-  (is (equal (simp `(sin (/ ,%pi 2))) 1))
-  (is (equal (simp `(sin (/ ,%pi 3))) (simp '(/ (sqrt 3) 2))))
-  (is (equal (simp `(sin (/ ,%pi 4))) (simp '(/ (sqrt 2) 2))))
-  (is (equal (simp `(sin (/ ,%pi 6))) 1/2))
+  (is (zerop (simp `(sin $%pi))))
+  (is (equal (simp `(sin (/ $%pi 2))) 1))
+  (is (equal (simp `(sin (/ $%pi 3))) (simp '(/ (sqrt 3) 2))))
+  (is (equal (simp `(sin (/ $%pi 4))) (simp '(/ (sqrt 2) 2))))
+  (is (equal (simp `(sin (/ $%pi 6))) 1/2))
   (is (equal (simp '(sin 0)) 0)))
 
 (test cos
-  (is (equal (simp `(cos ,%pi)) -1))
-  (is (equal (simp `(cos (/ ,%pi 2))) 0))
-  (is (equal (simp `(cos (/ ,%pi 3))) 1/2))
-  (is (equal (simp `(cos (/ ,%pi 4))) (simp '(/ (sqrt 2) 2))))
-  (is (equal (simp `(cos (/ ,%pi 6))) (simp '(/ (sqrt 3) 2))))
+  (is (equal (simp `(cos $%pi)) -1))
+  (is (equal (simp `(cos (/ $%pi 2))) 0))
+  (is (equal (simp `(cos (/ $%pi 3))) 1/2))
+  (is (equal (simp `(cos (/ $%pi 4))) (simp '(/ (sqrt 2) 2))))
+  (is (equal (simp `(cos (/ $%pi 6))) (simp '(/ (sqrt 3) 2))))
   (is (equal (simp '(cos 0)) 1)))
 
 (test tan
   (is (equal (simp '(tan 0)) 0))
-  (is (equal (simp `(tan (/ ,%pi 4))) 1)))
+  (is (equal (simp `(tan (/ $%pi 4))) 1)))
 
 (test exp
   (is (equal (simp '(exp 0)) 1))
@@ -107,24 +107,24 @@
 (test atan
   (is (equal (simp (list 'atan 'a)) '(atan a)))
   (is (equal (simp '(atan 0)) 0))
-  (is (equal (simp '(atan 1)) (simp `(/ ,%pi 4)))))
+  (is (equal (simp '(atan 1)) (simp `(/ $%pi 4)))))
 
 (test atan2
   (is (equal (simp '(atan2 0 1)) 0))
   (is (equal (simp '(atan2 1 1))
-(simp `(/ ,%pi 4)))))
+(simp `(/ $%pi 4)))))
 
 (test asin
   (is (equal (simp (list 'asin 'a)) '(asin a)))
   (is (equal (simp '(asin 0)) 0))
-  (is (equal (simp '(asin 1)) (simp `(/ ,%pi 2))))
-  (is (equal (simp '(asin (/ (sqrt 2) 2))) (simp `(/ ,%pi 4)))))
+  (is (equal (simp '(asin 1)) (simp `(/ $%pi 2))))
+  (is (equal (simp '(asin (/ (sqrt 2) 2))) (simp `(/ $%pi 4)))))
 
 (test acos
   (is (equal (simp (list 'acos 'a)) '(acos a)))
-  (is (equal (simp '(acos 0)) (simp `(/ ,%pi 2))))
+  (is (equal (simp '(acos 0)) (simp `(/ $%pi 2))))
   (is (equal (simp '(acos 1)) 0))
-  (is (equal (simp '(acos (/ (sqrt 2) 2))) (simp `(/ ,%pi 4)))))
+  (is (equal (simp '(acos (/ (sqrt 2) 2))) (simp `(/ $%pi 4)))))
 
 (test signum
   (is (equal (simp (list 'signum 'a)) '(signum a)))
