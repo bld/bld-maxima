@@ -1,5 +1,5 @@
 (defpackage :bld-maxima
-  (:use :common-lisp :cl-ppcre :usocket)
+  (:use :common-lisp :cl-ppcre :usocket :optima)
   (:export :*delay*
 	   :*maxima-binary*
 	   :*maxima-init-expressions*

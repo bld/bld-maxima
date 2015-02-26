@@ -3,7 +3,7 @@
     :author "Benjamin L. Diedrich <ben@solarsails.info>"
     :license "MIT"
     :description "Send commands to Maxima program, including simplification of Lisp math expressions."
-    :depends-on ("cl-ppcre" "usocket")
+    :depends-on ("cl-ppcre" "usocket" "optima")
     :serial t
     :components ((:file "package")
 		 (:file "maxima")
