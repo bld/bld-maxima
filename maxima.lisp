@@ -24,23 +24,47 @@
    ratiostring
    "((RAT) \\1 \\2)"))
 
+(defparameter *atom-or-expr-regex* "(\\(.*\\)|\\S+)" "Regex to match atom or expression in parens")
+
+(defun /p (lexpr)
+  "Test if expression is division"
+  (match lexpr ((cons '/ _) lexpr)))
+
+(defun /-to-expt (lexpr)
+  (match lexpr
+    ((list '/ x) `(expt ,x -1))
+    ((list '/ x y) `(* ,x (expt ,y -1)))
+    ((cons '/ (cons x y))
+     `(* ,x (expt (* ,@y) -1)))))
+
+(defun subst-tree (tree test fun)
+  "Apply FUN to leaves of tree when TEST of leaf evaluates to T"
+  (if (atom tree)
+      (if (funcall test tree) (funcall fun tree) tree)
+      (if (funcall test tree)
+	  (funcall fun (cons (car tree) (mapcar #'(lambda (l) (subst-tree l test fun)) (cdr tree))))
+	  (cons (car tree) (mapcar #'(lambda (l) (subst-tree l test fun)) (cdr tree))))))
+
+(defun /-to-expt-tree (lexpr)
+  (subst-tree lexpr #'/p #'/-to-expt))
+
 ;; Fix exponent functions to (sqrt ...), (/ ...), (/ (sqrt ...)) 
 
 (defun expt-to-sqrt (exptstring)
   "Replace (EXPT FORM 1/2) to SQRT expression"
   (regex-replace-all
-   "\\(EXPT (.*) 1/2\\)"
+   (concatenate 'string "\\(EXPT " *atom-or-expr-regex* " 1/2\\)")
    (remove #\Newline exptstring) "(SQRT \\1)"))
 
 (defun expt-to-invsqrt (exptstring)
   "Replace Lisp (EXPT FORM -1/2) to (/ (SQRT FORM)) expression"
   (regex-replace-all
-   "\\(EXPT (.*) -1/2\\)"
+   (concatenate 'string "\\(EXPT " *atom-or-expr-regex* " -1/2\\)")
    (remove #\Newline exptstring) "(/ (SQRT \\1))"))
 
 (defun expt-to-/ (exptstring)
   (regex-replace-all
-   "\\(EXPT (.*) -1\\)"
+   (concatenate 'string "\\(EXPT " *atom-or-expr-regex* " -1\\)")
    (remove #\Newline exptstring) "(/ \\1)"))
 
 ;; PI and E
@@ -176,7 +200,8 @@
 
 (defun simplify-lisp-expr (lexpr &optional (simpfun '$ev))
   "Simplify a lisp expression using socket to Maxima"
-  (let* ((mstring (lisp-to-maxima-string (prin1-to-string lexpr)))
+  (let* ((lexpr2 (/-to-expt-tree lexpr))
+	 (mstring (lisp-to-maxima-string (prin1-to-string lexpr2)))
 	 (lfuns (match-lisp-funs mstring))
 	 (rfuns (loop for lfun in lfuns
 		   collect (princ-to-string (gensym)))))
