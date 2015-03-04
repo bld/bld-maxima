@@ -28,14 +28,22 @@
 
 (defun /p (lexpr)
   "Test if expression is division"
-  (match lexpr ((cons '/ _) lexpr)))
+  (let ((lexpr2 (if (consp lexpr)
+		    (cons (intern (symbol-name (first lexpr)) "CL")
+			  (rest lexpr))
+		    lexpr)))
+    (match lexpr2 ((cons '/ _) lexpr2))))
 
 (defun /-to-expt (lexpr)
-  (match lexpr
-    ((list '/ x) `(expt ,x -1))
-    ((list '/ x y) `(* ,x (expt ,y -1)))
-    ((cons '/ (cons x y))
-     `(* ,x (expt (* ,@y) -1)))))
+  (let ((lexpr2 (if (consp lexpr)
+		    (cons (intern (symbol-name (first lexpr)) "CL")
+			  (rest lexpr))
+		    lexpr)))
+    (match lexpr2
+      ((list '/ x) `(expt ,x -1))
+      ((list '/ x y) `(* ,x (expt ,y -1)))
+      ((cons '/ (cons x y))
+       `(* ,x (expt (* ,@y) -1))))))
 
 (defun subst-tree (tree test fun)
   "Apply FUN to leaves of tree when TEST of leaf evaluates to T"
