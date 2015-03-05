@@ -107,6 +107,14 @@
     (rat /))
   "lookup table of maxima > lisp expressions")
 
+(defparameter *lisp-maxima-table*
+  (mapcar #'reverse *maxima-lisp-table*))
+
+(defun lisp-expr-to-maxima (lexpr)
+  (match lexpr
+    ((cons f args) `((,(second (assoc f *lisp-maxima-table*))) ,@args))
+    (x x)))
+
 (defmethod atan2 ((n1 number)(n2 number))
   (atan n1 n2))
 
