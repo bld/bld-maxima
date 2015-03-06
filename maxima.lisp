@@ -110,10 +110,29 @@
 (defparameter *lisp-maxima-table*
   (mapcar #'reverse *maxima-lisp-table*))
 
-(defun lisp-expr-to-maxima (lexpr)
-  (match lexpr
-    ((cons f args) `((,(second (assoc f *lisp-maxima-table*))) ,@args))
-    (x x)))
+(defun lisp-expr-to-maxima (lexpr &optional (fntable (make-hash-table :test 'equal)))
+  "Convert tree of lisp math expressions to maxima lisp format"
+  ;; Return Maxima expression
+  (values
+   (if (atom lexpr) ; Check if atomic
+       lexpr ; If so, return as is
+       (let* ((l (first lexpr)) ; Else grab Lisp function
+	      (m (rest (assoc l *lisp-maxima-table*)))) ; & lookup Maxima
+	(if (not m) ; Check if Lisp function not in table
+	    ;; If not, gensym, put in table, & return
+	    (progn
+	      (unless (gethash lexpr fntable)
+		(setf (gethash lexpr fntable) (gensym)))
+	      (gethash lexpr fntable))
+	    ;; Otherwise, convert to Maxima form & convert args
+	    (let ((a (mapcar #'(lambda (l) (lisp-expr-to-maxima l fntable)) (rest lexpr))))
+	      (if (equal l '/) ; Check if division, & treat different
+		  (if (rest a) ; One or 2+ args?
+		      `((mtimes) ,(first a) ((mexpt) (* ,@(rest a)) -1))
+		      `((mexpt) ,(first a) -1)) ; 1 arg: invert
+		  `(,m ,@a)))))) ; Else form non-division Maxima expr
+   ;; Also return fntable
+   fntable))
 
 (defmethod atan2 ((n1 number)(n2 number))
   (atan n1 n2))
