@@ -128,11 +128,28 @@
 	    (let ((a (mapcar #'(lambda (l) (lisp-expr-to-maxima l fntable)) (rest lexpr))))
 	      (if (equal l '/) ; Check if division, & treat different
 		  (if (rest a) ; One or 2+ args?
-		      `((mtimes) ,(first a) ((mexpt) (* ,@(rest a)) -1))
+		      `((mtimes) ,(first a) ((mexpt) ((mtimes) ,@(rest a)) -1))
 		      `((mexpt) ,(first a) -1)) ; 1 arg: invert
 		  `(,m ,@a)))))) ; Else form non-division Maxima expr
    ;; Also return fntable
    fntable))
+
+(defun reverse-hash-table-keys-values (h)
+  (let ((hout (make-hash-table :test (hash-table-test h))))
+    (loop for k being the hash-keys in h
+       for v being the hash-values in h
+       do (setf (gethash v hout) k))
+    hout))
+
+(defun maxima-expr-to-lisp (mexpr &optional rfntable)
+  (if (atom mexpr)
+      (if (gethash mexpr rfntable)
+      	  (gethash mexpr rfntable)
+	  mexpr)
+      (let* ((m (first (first mexpr)))
+	     (l (second (assoc m *maxima-lisp-table*)))
+	     (a (mapcar #'(lambda (m) (maxima-expr-to-lisp m rfntable)) (rest mexpr))))
+	`(,l ,@a))))
 
 (defmethod atan2 ((n1 number)(n2 number))
   (atan n1 n2))
