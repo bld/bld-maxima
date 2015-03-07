@@ -5,5 +5,5 @@
     :description "Send commands to Maxima program, including simplification of Lisp math expressions."
     :components 
     ((:file "tests"))
-    :depends-on ("bld-maxima" "fiveam" "usocket" "cl-ppcre"))
+    :depends-on ("bld-maxima" "fiveam" "usocket"))
 
