@@ -26,4 +26,5 @@
 	   :trigsimp
 	   :trigrat
 	   :%pi
-	   :%e))
+	   :%e
+	   :simp-lisp-expr))

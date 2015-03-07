@@ -110,19 +110,25 @@
 (defparameter *lisp-maxima-table*
   (mapcar #'reverse *maxima-lisp-table*))
 
+(defun lisp-atom-to-maxima (atom)
+  "Convert lisp atom to maxima RAT"
+  (if (typep atom 'ratio) ; convert ratio to RAT
+      `((rat) ,(numerator atom) ,(denominator atom))
+      atom)) ; else use as is
+
 (defun lisp-expr-to-maxima (lexpr &optional (fntable (make-hash-table :test 'equal)))
   "Convert tree of lisp math expressions to maxima lisp format"
   ;; Return Maxima expression
   (values
    (if (atom lexpr) ; Check if atomic
-       lexpr ; If so, return as is
+       (lisp-atom-to-maxima lexpr) ; If so, return as is
        (let* ((l (first lexpr)) ; Else grab Lisp function
 	      (m (rest (assoc l *lisp-maxima-table*)))) ; & lookup Maxima
 	(if (not m) ; Check if Lisp function not in table
 	    ;; If not, gensym, put in table, & return
 	    (progn
 	      (unless (gethash lexpr fntable)
-		(setf (gethash lexpr fntable) (gensym)))
+		(setf (gethash lexpr fntable) (intern (symbol-name (gensym)))))
 	      (gethash lexpr fntable))
 	    ;; Otherwise, convert to Maxima form & convert args
 	    (let ((a (mapcar #'(lambda (l) (lisp-expr-to-maxima l fntable)) (rest lexpr))))
@@ -135,21 +141,31 @@
    fntable))
 
 (defun reverse-hash-table-keys-values (h)
+  "Reverse the keys and values of a hash table"
   (let ((hout (make-hash-table :test (hash-table-test h))))
     (loop for k being the hash-keys in h
        for v being the hash-values in h
        do (setf (gethash v hout) k))
     hout))
 
-(defun maxima-expr-to-lisp (mexpr &optional rfntable)
+(defun maxima-expr-to-lisp (mexpr rfntable)
+  "Convert maxima expression to lisp"
   (if (atom mexpr)
       (if (gethash mexpr rfntable)
       	  (gethash mexpr rfntable)
 	  mexpr)
       (let* ((m (first (first mexpr)))
-	     (l (second (assoc m *maxima-lisp-table*)))
+	     (l (second (assoc (intern (symbol-name m) :bld-maxima) *maxima-lisp-table*)))
 	     (a (mapcar #'(lambda (m) (maxima-expr-to-lisp m rfntable)) (rest mexpr))))
-	`(,l ,@a))))
+	(if (equal (symbol-name m) "RAT")
+	    (apply #'/ a)
+	    `(,l ,@a)))))
+
+(defun simp-lisp-expr (lexpr &optional (evfn '$ev))
+  (multiple-value-bind (mexpr fntable) (lisp-expr-to-maxima lexpr)
+    (let ((mexpr-simp (second (maxima-send-lisp (format nil "(mfuncall '~a '~a)" evfn mexpr))))
+	  (rfntable (reverse-hash-table-keys-values fntable)))
+      (maxima-expr-to-lisp mexpr-simp rfntable))))
 
 (defmethod atan2 ((n1 number)(n2 number))
   (atan n1 n2))
@@ -271,7 +287,7 @@
 (defun simp (lexpr &optional (simpfun '$ev))
   "Simplify a lisp math expression using specified Maxima
 simplification function. Just return the expression if *DELAY* is T."
-  (if *delay* lexpr (simplify-lisp-expr lexpr simpfun)))
+  (if *delay* lexpr (simp-lisp-expr lexpr simpfun)))
 
 (defun trigreduce (lexpr)
   (simp lexpr '$trigreduce))
