@@ -56,7 +56,7 @@
    (if (atom lexpr) ; Check if atomic
        (lisp-atom-to-maxima lexpr) ; If so, return as is
        (let* ((l (first lexpr)) ; Else grab Lisp function
-	      (m (rest (assoc l *lisp-maxima-table*)))) ; & lookup Maxima
+	      (m (rest (assoc (intern (symbol-name l) :bld-maxima) *lisp-maxima-table*)))) ; & lookup Maxima
 	(if (not m) ; Check if Lisp function not in table
 	    ;; If not, gensym, put in table, & return
 	    (progn
@@ -88,7 +88,7 @@
       	  (gethash mexpr rfntable)
 	  mexpr)
       (let* ((m (first (first mexpr)))
-	     (l (second (assoc (intern (symbol-name m) :bld-maxima) *maxima-lisp-table*)))
+	     (l (intern (symbol-name (second (assoc (intern (symbol-name m) :bld-maxima) *maxima-lisp-table*)))))
 	     (a (mapcar #'(lambda (m) (maxima-expr-to-lisp m rfntable)) (rest mexpr))))
 	(if (equal (symbol-name m) "RAT")
 	    (apply #'/ a)
