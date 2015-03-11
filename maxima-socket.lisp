@@ -19,7 +19,7 @@
   "Setup a server socket to listen to Maxima process"
   (setq *maxima-socket-passive* (socket-listen *maxima-host* *maxima-port*)))
 
-(defun maxima-run ()
+#-ecl (defun maxima-run ()
   "Run Maxima in the background, connecting to previously setup *MAXIMA-SOCKET*"
   (setq *maxima-process*
 	(uiop/run-program::%run-program
@@ -27,6 +27,19 @@
 	       *maxima-socket-options*
 	       "-s"
 	       (princ-to-string *maxima-port*))
+	 :wait nil)))
+
+#+ecl (defun maxima-run ()
+  "Run Maxima in the background, connecting to previously setup *MAXIMA-SOCKET*"
+  (setq *maxima-process*
+	(ext:run-program
+	 *maxima-binary* 
+	 (list *maxima-socket-options*
+	       "-s"
+	       (princ-to-string *maxima-port*))
+	 :input nil
+	 :output :stream
+	 :error nil
 	 :wait nil)))
 
 (defun maxima-accept ()
