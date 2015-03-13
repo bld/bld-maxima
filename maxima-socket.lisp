@@ -56,14 +56,16 @@
 
 (defun maxima-send (string &key (num 3))
   "Send Maxima form as string"
-  (let ((stream (socket-stream *maxima-socket*)))
+  (let ((stream (socket-stream *maxima-socket*))
+	(*print-pretty* nil))
     (format stream "~a;~%" string)
     (force-output stream))
   (maxima-read :num num))
 
 (defun maxima-send-lisp (string &key (num 2))
   "Send Maxima lisp form as string"
-  (maxima-send (format nil ":lisp ~a" string) :num num))
+  (let ((*print-pretty* nil))
+    (maxima-send (format nil ":lisp ~a" string) :num num)))
 
 (defun maxima-quit ()
   "Send quit() command to maxima"

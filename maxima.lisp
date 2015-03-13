@@ -95,10 +95,11 @@
 	    `(,l ,@a)))))
 
 (defun simp-lisp-expr (lexpr &optional (evfn '$ev))
-  (multiple-value-bind (mexpr fntable) (lisp-expr-to-maxima lexpr)
-    (let ((mexpr-simp (second (maxima-send-lisp (format nil "(mfuncall '~a '~a)" evfn mexpr))))
-	  (rfntable (reverse-hash-table-keys-values fntable)))
-      (maxima-expr-to-lisp mexpr-simp rfntable))))
+  (let ((*print-pretty* nil))
+    (multiple-value-bind (mexpr fntable) (lisp-expr-to-maxima lexpr)
+      (let ((mexpr-simp (second (maxima-send-lisp (format nil "(mfuncall '~a '~a)" evfn mexpr))))
+	    (rfntable (reverse-hash-table-keys-values fntable)))
+	(maxima-expr-to-lisp mexpr-simp rfntable)))))
 
 (defmethod atan2 ((n1 number)(n2 number))
   (atan n1 n2))
